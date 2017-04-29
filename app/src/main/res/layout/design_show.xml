@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_data_show_align"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:clickable="true"
+    android:background="?android:attr/selectableItemBackground"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="mechanic.com.mechanic.dataShowAlign"
+    >
+
+    <TextView
+        android:id="@+id/materialNameShow"
+        android:text="MaterialName"
+        android:gravity="center"
+        android:textColor="#000"
+        android:layout_alignParentRight="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/carbonShow"
+        android:layout_below="@id/materialNameShow"
+        android:text="carbon"
+        android:layout_alignParentRight="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/materialTypeShow"
+        android:text="F"
+        android:layout_below="@id/materialNameShow"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/siliconShow"
+        android:layout_marginTop="35dp"
+        android:layout_below="@id/carbonShow"
+        android:text="silicon"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/boxWeightShow"
+        android:text="BoxWeight"
+        android:gravity="center"
+        android:layout_marginTop="35dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+    <TextView
+        android:id="@+id/temperatureShow"
+        android:layout_below="@id/materialTypeShow"
+        android:text="temp"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/manganesShow"
+        android:layout_below="@id/siliconShow"
+        android:text="manganes"
+        android:layout_alignParentRight="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/poringTemperatureShow"
+        android:layout_below="@id/temperatureShow"
+        android:text="poringTemp"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content" />
+
+
+</RelativeLayout>
