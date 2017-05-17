@@ -18,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,6 +60,7 @@ public class SignUp extends AppCompatActivity {
     private EditText userNameEditText;
     private EditText userPasswordEditText;
     private EditText userConformPasswordEditText;
+    private EditText securityAnswerEditText;
     private TextView linkToSignIn;
     private Button submitButton;
     private FirebaseAuth firebaseAuth;
@@ -70,6 +72,10 @@ public class SignUp extends AppCompatActivity {
     boolean conformPassswordToggleBoolean = true;
     ArrayAdapter<String> listViewAdapter;
     Bundle defaultBundle = new Bundle();
+    List<String> securityQuestionList = new ArrayList<>();
+    ArrayAdapter arrayAdapter;
+    private Spinner securityQuestionSpinner;
+
 
     ArrayList<LoginBO> dbLoginBOs = new ArrayList<LoginBO>();
 /*
@@ -111,12 +117,23 @@ public class SignUp extends AppCompatActivity {
         userNameEditText = (EditText) findViewById(R.id.signUpEmail);
         userPasswordEditText = (EditText) findViewById(R.id.signUpPassword);
         userConformPasswordEditText = (EditText) findViewById(R.id.signUpconformPassword);
+        securityAnswerEditText = (EditText) findViewById(R.id.securityAnswer);
         passwordWithToggle = (TextInputLayout) findViewById(R.id.signUpPasswordwithToggle);
         conformPasswordWithToggle = (TextInputLayout) findViewById(R.id.signUpConformPasswordwithToggle);
         linkToSignIn = (TextView) findViewById(R.id.linktoSignIn);
         emailSampleListView = (ListView) findViewById(R.id.emailSample);
         submitButton = (Button) findViewById(R.id.signUpSubmit);
+        securityQuestionSpinner = (Spinner) findViewById(R.id.securityQuestion);
 
+        securityQuestionList.add("");
+        securityQuestionList.add("What is your best friend name");
+        securityQuestionList.add("What is your life goal");
+        securityQuestionList.add("What is your native pincode");
+
+        arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item,securityQuestionList);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        securityQuestionSpinner.setAdapter(arrayAdapter);
+        
         Intent in = getIntent();
         Bundle b = in.getExtras();
         defaultBundle = b;
@@ -254,6 +271,13 @@ public class SignUp extends AppCompatActivity {
                 }else if(!(userPasswordEditText.getText().toString().equals(userConformPasswordEditText.getText().toString()))){
                     userConformPasswordEditText.setError(getString(R.string.error_check_password));
                     userConformPasswordEditText.requestFocus();
+                }else if(TextUtils.isEmpty(securityQuestionSpinner.getSelectedItem().toString())){
+                    TextView securityQuestionErrorTextview = (TextView) securityQuestionSpinner.getSelectedView();
+                    securityQuestionErrorTextview.setError("Please Select Security Question");
+
+                }else if(TextUtils.isEmpty(EditTextUtil.getString(securityAnswerEditText))){
+                    securityAnswerEditText.setError(getString(R.string.error_empty_security_answer));
+                    securityAnswerEditText.requestFocus();
                 }else if(TextUtils.isEmpty(userNameEditText.getText().toString())){
                     userNameEditText.setError(getString(R.string.error_field_required));
                     userNameEditText.requestFocus();
@@ -284,6 +308,8 @@ public class SignUp extends AppCompatActivity {
                     loginBO.setUserName(EditTextUtil.getString(userNameEditText));
                     loginBO.setPassword(EditTextUtil.getString(userPasswordEditText));
                     loginBO.setUpdatedTime(DateUtil.getDateAndTime(new Date()));
+                    loginBO.setSecurityAnswer(EditTextUtil.getString(securityAnswerEditText));
+                    loginBO.setSecurityQuestion(securityQuestionSpinner.getSelectedItem().toString());
                     loginBO.setUserRoleBO(new UserRoleBO());
                     loginBO.setUserRoleBO(userRoleBO);
 

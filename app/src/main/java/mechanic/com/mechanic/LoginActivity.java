@@ -3,6 +3,7 @@ package mechanic.com.mechanic;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -45,6 +46,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,12 +65,16 @@ import java.util.List;
 import mechanic.com.mechanic.BusinessHelper.DateUtil;
 import mechanic.com.mechanic.BusinessHelper.EditTextUtil;
 import mechanic.com.mechanic.BusinessHelper.ElementConstants;
+import mechanic.com.mechanic.BusinessHelper.ListUtil;
 import mechanic.com.mechanic.BusinessHelper.LoginHelper;
 import mechanic.com.mechanic.BusinessHelper.MasterHelper;
+import mechanic.com.mechanic.BusinessHelper.NetworkHelper;
 import mechanic.com.mechanic.BusinessHelper.StringUtil;
+import mechanic.com.mechanic.BusinessObject.ErrorListBO;
 import mechanic.com.mechanic.BusinessObject.LoginBO;
 import mechanic.com.mechanic.BusinessObject.StatusBO;
 import mechanic.com.mechanic.BusinessObject.UserRoleBO;
+import mechanic.com.mechanic.BusinessValidation.Validation;
 
 import static android.Manifest.permission.READ_CONTACTS;
 import static mechanic.com.mechanic.BusinessHelper.MasterHelper.clearEditTextVariables;
@@ -97,6 +103,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     // UI references.
     private TextView signUpTextView;
+    private TextView forgotPasswordTextView;
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
@@ -109,6 +116,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private ListView emailSampleListView;
     ArrayAdapter<String> listViewAdapter;
     List<String> emailDefaultListString = new ArrayList<>();
+    List<String> securityQuestionList = new ArrayList<>();
+    ArrayAdapter securityQuestionArrayAdapter;
+    LoginBO currentloginBO = new LoginBO();
+
 
     private LoginBO loginBO;
 
@@ -117,7 +128,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-    getSupportActionBar().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.colorBlue)));
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
@@ -125,40 +135,179 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mPasswordView = (EditText) findViewById(R.id.password);
         mpasswordWithToggle = (TextInputLayout) findViewById(R.id.passwordWithToggle);
         signUpTextView = (TextView) findViewById(R.id.signUpLink);
+        forgotPasswordTextView = (TextView) findViewById(R.id.forgotPasswordLink);
         emailSampleListView = (ListView) findViewById(R.id.emailloginSample);
         sharedpreferences = getSharedPreferences(ElementConstants.MyPREFERENCES, Context.MODE_PRIVATE);
+
+        forgotPasswordTextView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Dialog dialog = new Dialog(LoginActivity.this);
+                dialog.setContentView(R.layout.forget_password_layout);
+                final EditText userEmailId = (EditText) dialog.findViewById(R.id.forgotEmail);
+                final EditText securityAnswer = (EditText) dialog.findViewById(R.id.forgotSecurityAnswer);
+                final Spinner securityQuestionSpinner = (Spinner) dialog.findViewById(R.id.forgotSecurityQuestion);
+                final Button forgotSubmit = (Button) dialog.findViewById(R.id.forgetSubmit);
+
+                securityQuestionList.clear();
+                securityQuestionList.add("");
+                securityQuestionList.add("What is your best friend name");
+                securityQuestionList.add("What is your life goal");
+                securityQuestionList.add("What is your native pincode");
+
+                securityQuestionArrayAdapter = new ArrayAdapter(LoginActivity.this, android.R.layout.simple_spinner_item, securityQuestionList);
+                securityQuestionArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                securityQuestionSpinner.setAdapter(securityQuestionArrayAdapter);
+
+
+                userEmailId.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear_black_24dp, 0);
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                });
+
+                userEmailId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+
+                        if (hasFocus) {
+                            if (StringUtil.isNotNullOrEmpty(EditTextUtil.getString(userEmailId))) {
+                                userEmailId.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear_black_24dp, 0);
+                            } else {
+                                userEmailId.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                            }
+                        } else {
+                            userEmailId.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                        }
+                    }
+                });
+
+                userEmailId.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (event.getRawX() >= userEmailId.getRight() - userEmailId.getTotalPaddingRight()) {
+                            clearEditTextVariables(userEmailId);
+                            userEmailId.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+
+                        }
+                        return false;
+                    }
+                });
+
+                forgotSubmit.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (!(isEmailValid(EditTextUtil.getString(userEmailId)))) {
+                            userEmailId.setError(getString(R.string.error_invalid_email));
+                        }
+                        if (TextUtils.isEmpty(EditTextUtil.getString(securityAnswer))) {
+                            securityAnswer.setError(getString(R.string.error_empty_security_answer));
+                        }
+                        if (TextUtils.isEmpty(securityQuestionSpinner.getSelectedItem().toString())) {
+                            TextView securityQuestionErrorTextview = (TextView) securityQuestionSpinner.getSelectedView();
+                            securityQuestionErrorTextview.setError("Please Select Security Question");
+                        }
+
+                        if (ListUtil.isNotNullOrEmpty(dbLoginBOs) && StringUtil.isNotNullOrEmpty(EditTextUtil.getString(userEmailId))) {
+
+                            currentloginBO.setUserName(EditTextUtil.getString(userEmailId));
+
+                            List<ErrorListBO> errorListBOs = Validation.validateUserName(dbLoginBOs, currentloginBO);
+                            if (!(ListUtil.isNotNullOrEmpty(errorListBOs))) {
+                                userEmailId.setError("Given userName is not registered");
+                            }
+
+                            for(LoginBO loginBO : dbLoginBOs){
+                                if(StringUtil.isEqual(loginBO.getUserName(),currentloginBO.getUserName())){
+                                    currentloginBO = new LoginBO();
+                                    currentloginBO = loginBO;
+                                    break;
+                                }
+                            }
+                        }
+
+/*
+                        if(!(StringUtil.isEqual(securityQuestionSpinner.getSelectedItem().toString(),currentloginBO.getSecurityQuestion()))){
+                            TextView securityQuestionErrorTextview = (TextView) securityQuestionSpinner.getSelectedView();
+                            securityQuestionErrorTextview.setError("Security Question is wrong");
+                        }
+
+                        if(!(StringUtil.isEqual(EditTextUtil.getString(securityAnswer),currentloginBO.getSecurityAnswer()))){
+                            securityAnswer.setError("Security Answer is wrong");
+                        }
+*/
+
+                        /*if(StringUtil.isNotNullOrEmpty(EditTextUtil.getString(userEmailId)) &&
+                                StringUtil.isNotNullOrEmpty(securityQuestionSpinner.getSelectedItem().toString()) &&
+                                StringUtil.isNotNullOrEmpty(EditTextUtil.getString(securityAnswer)) &&
+                                StringUtil.isEqual(securityQuestionSpinner.getSelectedItem().toString(),currentloginBO.getSecurityQuestion()) &&
+                                StringUtil.isEqual(EditTextUtil.getString(securityAnswer),currentloginBO.getSecurityAnswer())){
+
+                            dialog.dismiss();
+                            Toast.makeText(LoginActivity.this, "Password has been send to your email successfully", Toast.LENGTH_LONG).show();
+                        }*/
+
+                        NetworkHelper.password = currentloginBO.getPassword();
+                                new  NetworkHelper().execute();
+
+                                dialog.dismiss();
+
+
+                    }
+                });
+
+                dialog.show();
+
+            }
+        });
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
             //onBackPressed();
-        }else if(sharedpreferences.contains(ElementConstants.Name)) {
+        } else if (sharedpreferences.contains(ElementConstants.Name)) {
             String id = sharedpreferences.getString(ElementConstants.Id, "");
             String email = sharedpreferences.getString(ElementConstants.Name, "");
             String password = sharedpreferences.getString(ElementConstants.password, "");
             String userFirstLastName = sharedpreferences.getString(ElementConstants.userFirstLastName, "");
-            if(!(TextUtils.isEmpty(id)) && !(TextUtils.isEmpty(email)) && !(TextUtils.isEmpty(password))) {
+            if (!(TextUtils.isEmpty(id)) && !(TextUtils.isEmpty(email)) && !(TextUtils.isEmpty(password))) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                Bundle b = MasterHelper.getDefaultBundleValues(id,email,password,userFirstLastName);
+                LoginBO dbloginBO = new LoginBO();
+                dbloginBO.setIdLogin(id);
+                dbloginBO.setUserName(email);
+                dbloginBO.setPassword(password);
+                dbloginBO.setFirstName(userFirstLastName);
+                i.putExtra("dbLoginBO", dbloginBO);
+                Bundle b = MasterHelper.getDefaultBundleValues(id, email, password, userFirstLastName);
 
                 i.putExtras(b);
-               // MainActivity.loginBO = login
+                // MainActivity.loginBO = login
                 startActivity(i);
             }
         }
 
-        if(!(isNetworkAvailable())){
+        if (!(isNetworkAvailable())) {
             Toast.makeText(LoginActivity.this, "Please Connect to Internet", Toast.LENGTH_LONG).show();
         }
 
         signUpTextView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),SignUp.class);
-                i.putExtra("dbLoginBOs",dbLoginBOs);
+                Intent i = new Intent(getApplicationContext(), SignUp.class);
+                i.putExtra("dbLoginBOs", dbLoginBOs);
                 startActivity(i);
             }
         });
-
 
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -167,9 +316,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot dataSnapshot1: dataSnapshot.getChildren()){
-                  LoginBO loginBO =  LoginHelper.databaseToBO(dataSnapshot1);
-                    if(loginBO != null && StringUtil.isNotNullOrEmpty(loginBO.getIdLogin())) {
+                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                    LoginBO loginBO = LoginHelper.databaseToBO(dataSnapshot1);
+                    if (loginBO != null && StringUtil.isNotNullOrEmpty(loginBO.getIdLogin())) {
                         dbLoginBOs.add(loginBO);
                     }
                 }
@@ -205,32 +354,32 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 boolean showornot = true;
                 String getUserNameValue = EditTextUtil.getString(mEmailView);
 
-                if(EditTextUtil.getString(mEmailView).contains("@")) {
-                    getUserNameValue = getUserNameValue.substring(getUserNameValue.indexOf("@")+1);
+                if (EditTextUtil.getString(mEmailView).contains("@")) {
+                    getUserNameValue = getUserNameValue.substring(getUserNameValue.indexOf("@") + 1);
 
                     if (StringUtil.isNotNullOrEmpty(getUserNameValue)) {
                         showornot = false;
                     }
                 }
-                if(showornot && EditTextUtil.getString(mEmailView).contains("@")){
+               /* if(showornot && EditTextUtil.getString(mEmailView).contains("@")){
                     emailDefaultListString = MasterHelper.getSampleEmailDomain(EditTextUtil.getString(mEmailView));
 
-                    listViewAdapter = new ArrayAdapter<String>(LoginActivity.this,android.R.layout.simple_list_item_1,emailDefaultListString);
+                    listViewAdapter = new ArrayAdapter<String>(LoginActivity.this,android.R.change_password_layout.simple_list_item_1,emailDefaultListString);
                     listViewAdapter.notifyDataSetChanged();
                     emailSampleListView.setAdapter(listViewAdapter);
                     emailSampleListView.setVisibility(View.VISIBLE);
                     InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                     inputMethodManager.hideSoftInputFromWindow(mEmailView.getWindowToken(),0);
-                }
+                }*/
 
 
-                mEmailView.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_clear_black_24dp,0);
+                mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear_black_24dp, 0);
 
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(!isEmailValid(EditTextUtil.getString(mEmailView))){
+                if (!isEmailValid(EditTextUtil.getString(mEmailView))) {
                     mEmailView.setError(getString(R.string.error_invalid_email));
                 }
             }
@@ -240,7 +389,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String value = (emailSampleListView.getItemAtPosition(position).toString());
-                if(StringUtil.isNotNullOrEmpty(value)) {
+                if (StringUtil.isNotNullOrEmpty(value)) {
                     mEmailView.setText(value);
                     emailSampleListView.setVisibility(View.GONE);
                     mPasswordView.requestFocus();
@@ -250,9 +399,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(event.getRawX() >= mEmailView.getRight() - mEmailView.getTotalPaddingRight()){
+                if (event.getRawX() >= mEmailView.getRight() - mEmailView.getTotalPaddingRight()) {
                     clearEditTextVariables(mEmailView);
-                    mEmailView.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0);
+                    mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 
                 }
                 return false;
@@ -262,19 +411,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
-                    if(StringUtil.isNotNullOrEmpty(EditTextUtil.getString(mEmailView))){
-                        mEmailView.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_clear_black_24dp,0);
-                    }else{
+                if (hasFocus) {
+                    if (StringUtil.isNotNullOrEmpty(EditTextUtil.getString(mEmailView))) {
+                        mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear_black_24dp, 0);
+                    } else {
                         mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                     }
-                }else {
+                } else {
                     emailSampleListView.setVisibility(View.GONE);
                     mEmailView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                 }
             }
         });
-
 
 
         mPasswordView.addTextChangedListener(new TextWatcher() {
@@ -285,10 +433,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(TextUtils.isEmpty(mPasswordView.getText().toString())){
+                if (TextUtils.isEmpty(mPasswordView.getText().toString())) {
                     mpasswordWithToggle.setPasswordVisibilityToggleEnabled(false);
                     passswordToggleBoolean = true;
-                }else if(passswordToggleBoolean) {
+                } else if (passswordToggleBoolean) {
                     mpasswordWithToggle.setPasswordVisibilityToggleEnabled(true);
                     passswordToggleBoolean = false;
                 }
@@ -300,6 +448,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -307,25 +456,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 //  attemptLogin();
                 //      if (allowSignIn) {
                 String email = EditTextUtil.getString(mEmailView);
-                String password =EditTextUtil.getString(mPasswordView);
+                String password = EditTextUtil.getString(mPasswordView);
 
-                if(!(isNetworkAvailable())){
+                if (!(isNetworkAvailable())) {
                     Toast.makeText(LoginActivity.this, "Please Connect to Internet", Toast.LENGTH_LONG).show();
-                }else if(mEmailView.getText().toString() != null && !(mEmailView.getText().toString().isEmpty()) &&
+                } else if (mEmailView.getText().toString() != null && !(mEmailView.getText().toString().isEmpty()) &&
                         mPasswordView.getText().toString() != null && !(mPasswordView.getText().toString().isEmpty())) {
                     LoginBO loginBO = new LoginBO();
                     loginBO.setUserName(EditTextUtil.getString(mEmailView));
                     loginBO.setPassword(EditTextUtil.getString(mPasswordView));
                     System.out.println(EditTextUtil.getString(mPasswordView));
                     System.out.println(EditTextUtil.getString(mEmailView));
-                    loginBO = LoginHelper.getLoginBOFromLoginBOs(dbLoginBOs,loginBO);
+                    loginBO = LoginHelper.getLoginBOFromLoginBOs(dbLoginBOs, loginBO);
 
-                    if (loginBO != null) {
+                    if (loginBO != null && StringUtil.isNotNullOrEmpty(loginBO.getIdLogin())) {
                         if (!(loginBO.getPassword().equals(mPasswordView.getText().toString()))) {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
                             //   Toast.makeText(LoginActivity.this, "Password incorrect", Toast.LENGTH_LONG).show();
-                        } else if(StringUtil.isNotNullOrEmpty(loginBO.getIdLogin())){
+                        } else if (StringUtil.isNotNullOrEmpty(loginBO.getIdLogin())) {
                             final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
                             progressDialog.setIndeterminate(true);
                             progressDialog.setMessage("Authenticating...");
@@ -335,16 +484,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             SharedPreferences.Editor editor = sharedpreferences.edit();
                             editor.putString(ElementConstants.Id, loginBO.getIdLogin());
                             editor.putString(ElementConstants.Name, EditTextUtil.getString(mEmailView));
-                            editor.putString(ElementConstants.password,EditTextUtil.getString(mPasswordView));
+                            editor.putString(ElementConstants.password, EditTextUtil.getString(mPasswordView));
 
 
                             String userFullName = "";
-                                if (StringUtil.isNotNullOrEmpty(loginBO.getFirstName()) && StringUtil.isNotNullOrEmpty(loginBO.getLastName())) {
-                                    userFullName = loginBO.getFirstName() + " " + loginBO.getLastName();
-                                } else {
-                                     userFullName = loginBO.getFirstName();
-                                }
-                            editor.putString(ElementConstants.userFirstLastName,userFullName);
+                            if (StringUtil.isNotNullOrEmpty(loginBO.getFirstName()) && StringUtil.isNotNullOrEmpty(loginBO.getLastName())) {
+                                userFullName = loginBO.getFirstName() + " " + loginBO.getLastName();
+                            } else {
+                                userFullName = loginBO.getFirstName();
+                            }
+                            editor.putString(ElementConstants.userFirstLastName, userFullName);
 
                             editor.commit();
 
@@ -354,31 +503,31 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                                             progressDialog.dismiss();
                                         }
-                                    },2000);
+                                    }, 2000);
 
                             Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                            i.putExtra("dbLoginBO",loginBO);
+                            i.putExtra("dbLoginBO", loginBO);
 
                             /*Bundle b = new Bundle();
                             b.putString(ElementConstants.Id, loginBO.getIdLogin());
                             b.putString(ElementConstants.Name, mEmailView.getText().toString());
                             b.putString(ElementConstants.password, mPasswordView.getText().toString());
                             i.putExtras(b);
-*/                            startActivity(i);
-                            Toast.makeText(LoginActivity.this, "Congrats: Login Successfull", Toast.LENGTH_LONG).show();
+*/
+                            startActivity(i);
                         }
                     } else {
                         Toast.makeText(LoginActivity.this, "Username incorrect", Toast.LENGTH_LONG).show();
 
                     }
-                }else if (TextUtils.isEmpty(email)) {
+                } else if (TextUtils.isEmpty(email)) {
                     mEmailView.setError(getString(R.string.error_field_required));
                     mEmailView.requestFocus();
                 } else if (!isEmailValid(email)) {
                     mEmailView.setError(getString(R.string.error_invalid_email));
                     mEmailView.requestFocus();
 
-                }else if(TextUtils.isEmpty(password)){
+                } else if (TextUtils.isEmpty(password)) {
                     mPasswordView.setError(getString(R.string.error_empty_password));
                     mPasswordView.requestFocus();
 
@@ -389,7 +538,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     mPasswordView.requestFocus();
 
                 }
-
 
 
             }
@@ -403,7 +551,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     public final void onBackPressed() {
 
-        if(sharedpreferences.contains(ElementConstants.Name)){
+        if (sharedpreferences.contains(ElementConstants.Name)) {
 
         }
         if (doubleBackToExitPressedOnce) {
@@ -418,7 +566,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             @Override
             public void run() {
-                doubleBackToExitPressedOnce=false;
+                doubleBackToExitPressedOnce = false;
             }
         }, 2000);
     }
@@ -678,7 +826,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    private  boolean isNetworkAvailable() {
+    private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();

@@ -1,18 +1,26 @@
 package mechanic.com.mechanic;
 
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -25,17 +33,23 @@ import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import mechanic.com.mechanic.BusinessHelper.DateUtil;
 import mechanic.com.mechanic.BusinessHelper.EditTextUtil;
 import mechanic.com.mechanic.BusinessHelper.ElementConstants;
 import mechanic.com.mechanic.BusinessHelper.MasterHelper;
@@ -59,19 +73,52 @@ public class MainActivity extends AppCompatActivity
     private EditText materialNameEditText;
     private Button save;
     private Button reset;
-    public static LoginBO loginBO;
+    public  LoginBO dbloginBO;
     private String materialType;
     SharedPreferences sharedpreferences;
     List<String> materialsList = new ArrayList<>();
     ArrayAdapter arrayAdapter;
     Bundle defaultBundle = new Bundle();
 
-    public LoginBO getLoginBO() {
-        return loginBO;
+    static {
+        System.out.println("static works");
     }
 
-    public void setLoginBO(LoginBO loginBO) {
-        this.loginBO = loginBO;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        System.out.println("on start works");
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        System.out.println("on start works");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        System.out.println("on start works");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        System.out.println("on start works");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        System.out.println("on start works");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.out.println("on start works");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -98,14 +145,19 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-/*
+        if (!(isNetworkAvailable())) {
+            Toast.makeText(MainActivity.this, "Please Connect to Internet", Toast.LENGTH_LONG).show();
+        }
+
+
+        /*
         final Drawable search = getResources().getDrawable(R.drawable.ic_search_black_24dp);
         search.setColorFilter(getResou rces().getColor(R.color.colorWhite), PorterDuff.Mode.SRC_ATOP);
         getSupportActionBar().setHomeAsUpIndicator(search);*/
 
         materialsList.add("");
-        materialsList.add("Ferroes");
-        materialsList.add("Non Ferroes");
+        materialsList.add("Ferrous");
+        materialsList.add("Non Ferrous");
 
         arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item,materialsList);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -115,7 +167,7 @@ public class MainActivity extends AppCompatActivity
         defaultBundle = b;
 
         final MechanicBO mechanicBO = (MechanicBO) in.getSerializableExtra("MechanicBO");
-        LoginBO dbloginBO = (LoginBO) in.getSerializableExtra("dbLoginBO");
+        dbloginBO = (LoginBO) in.getSerializableExtra("dbLoginBO");
         if(mechanicBO != null && StringUtil.isNotNullOrEmpty(mechanicBO.getIdMechanic())){
             carbonEditText.setText(mechanicBO.getCarbon());
             siliconEditText.setText(mechanicBO.getSilicon());
@@ -139,6 +191,10 @@ public class MainActivity extends AppCompatActivity
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(TextUtils.isEmpty(materialsSpinner.getSelectedItem().toString())){
+                    TextView textView = (TextView) materialsSpinner.getSelectedView();
+                    textView.setError("Please Select Material Type");
+                }
                 if(!(StringUtil.isNotNullOrEmpty(EditTextUtil.getString(carbonEditText)))){
                     carbonEditText.setError(getString(R.string.error_field_required));
                     carbonEditText.requestFocus();
@@ -166,7 +222,8 @@ public class MainActivity extends AppCompatActivity
                                         StringUtil.isNotNullOrEmpty(EditTextUtil.getString(temperatureEditText)) &&
                                                 StringUtil.isNotNullOrEmpty(EditTextUtil.getString(poringTemperatureEditText)) &&
                                                         StringUtil.isNotNullOrEmpty(EditTextUtil.getString(boxWeightEditText)) &&
-                                                            StringUtil.isNotNullOrEmpty(EditTextUtil.getString(materialNameEditText))){
+                                                                StringUtil.isNotNullOrEmpty(materialsSpinner.getSelectedItem().toString()) &&
+                                                                    StringUtil.isNotNullOrEmpty(EditTextUtil.getString(materialNameEditText))){
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("common/mechanic");
 
@@ -179,6 +236,8 @@ public class MainActivity extends AppCompatActivity
                         myRef.child(mechanicBO.getIdMechanic()).child("boxWeight").setValue(EditTextUtil.getString(boxWeightEditText));
                         myRef.child(mechanicBO.getIdMechanic()).child("materialType").setValue(materialsSpinner.getSelectedItem().toString());
                         myRef.child(mechanicBO.getIdMechanic()).child("materialName").setValue(EditTextUtil.getString(materialNameEditText));
+                        myRef.child(mechanicBO.getIdMechanic()).child("UpdatedTime").setValue(DateUtil.getDateAndTime(new Date()));
+
                     }else {
                         String id = myRef.push().getKey();
                         MechanicBO mechanicBO = new MechanicBO();
@@ -191,6 +250,7 @@ public class MainActivity extends AppCompatActivity
                         mechanicBO.setPoringTemperature(EditTextUtil.getString(poringTemperatureEditText));
                         mechanicBO.setBoxWeight(EditTextUtil.getString(boxWeightEditText));
                         mechanicBO.setMaterialName(EditTextUtil.getString(materialNameEditText));
+                        mechanicBO.setUpdatedTime(DateUtil.getDateAndTime(new Date()));
                         materialType = materialsSpinner.getSelectedItem().toString();
                         mechanicBO.setMaterialType(materialType);
                         myRef.child(id).setValue(mechanicBO);
@@ -246,6 +306,7 @@ public class MainActivity extends AppCompatActivity
             String username = b.getString(ElementConstants.Name);
             userFirstLastName.setText(userFullName);
 
+
             if(StringUtil.isNotNullOrEmpty(username)) {
                 userName.setText(username);
             }
@@ -255,6 +316,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void clearAllVariables() {
+        Intent in = getIntent();
         clearEditTextVariables(carbonEditText);
         clearEditTextVariables(siliconEditText);
         clearEditTextVariables(manganesEditText);
@@ -262,7 +324,9 @@ public class MainActivity extends AppCompatActivity
         clearEditTextVariables(poringTemperatureEditText);
         clearEditTextVariables(boxWeightEditText);
         clearEditTextVariables(materialNameEditText);
+        materialNameEditText.requestFocus();
         materialsSpinner.setSelection(0);
+
     }
 
     @Override
@@ -277,6 +341,25 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
+        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        AutoCompleteTextView  autoCompleteTextView = (AutoCompleteTextView) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        /*try {
+            Field mcursor = TextView.class.getDeclaredField("mcursor");
+            mcursor.setAccessible(true);
+            mcursor.set(autoCompleteTextView,R.drawable.white_cursor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
         return true;
     }
 
@@ -288,11 +371,13 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if(id == R.id.search){
+        if(id == R.id.action_search){
 
         }
         if (id == R.id.action_settings) {
             Intent i  = new Intent(getApplicationContext(),settings.class);
+
+            i.putExtra("dbLoginBO",dbloginBO);
             startActivity(i);
 
         }
@@ -304,9 +389,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        InputMethodManager inputMethodManager = (InputMethodManager)  this.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
         int id = item.getItemId();
+
 
         if (id == R.id.nav_operation) {
             Intent i = new Intent(getApplicationContext(),MainActivity.class);
@@ -322,10 +406,15 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
 
         } else if (id == R.id.nav_share) {
+            ApplicationInfo applicationInfo = getApplicationContext().getApplicationInfo();
+            String filePath = applicationInfo.sourceDir;
 
-        } else if (id == R.id.nav_send) {
-
-        }else if (id == R.id.nav_logout) {
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(filePath)));
+            startActivity(intent.createChooser(intent,"Share app via"));
+        } else if (id == R.id.nav_logout) {
             SharedPreferences sharedpreferences = getSharedPreferences(ElementConstants.MyPREFERENCES, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedpreferences.edit();
             editor.clear();
@@ -342,5 +431,12 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

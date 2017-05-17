@@ -24,6 +24,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -135,8 +136,8 @@ public class filter extends AppCompatActivity {
 
 
         materialsList.add("");
-        materialsList.add("Ferroes");
-        materialsList.add("Non Ferroes");
+        materialsList.add("Ferrous");
+        materialsList.add("Non Ferrous");
 
 
 
@@ -156,7 +157,7 @@ public class filter extends AppCompatActivity {
                 materialNameEditText.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_clear_black_24dp,0);
                 String materialNameSearch = EditTextUtil.getString(materialNameEditText);
                 if(StringUtil.isNotNullOrEmpty(materialNameSearch)) {
-                    myRef.orderByChild("materialName").equalTo(materialNameSearch);
+                    Query query = myRef.orderByChild("materialName").equalTo(materialNameSearch);
                     myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -181,6 +182,9 @@ public class filter extends AppCompatActivity {
                         }
                     });
                     populateListView();
+                }else{
+                    materialNameEditText.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0);
+
                 }
             }
 
@@ -237,9 +241,11 @@ public class filter extends AppCompatActivity {
                     if(StringUtil.isNotNullOrEmpty(EditTextUtil.getString(materialNameEditText))){
                         materialNameEditText.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_clear_black_24dp,0);
                     }else{
+                        materialNameListView.setVisibility(View.GONE);
                         materialNameEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                     }
                 }else {
+                    materialNameListView.setVisibility(View.GONE);
                     materialNameEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                 }
             }
@@ -275,6 +281,7 @@ public class filter extends AppCompatActivity {
         clearEditTextVariables(poringTemperatureEditText);
         clearEditTextVariables(boxWeightEditText);
         clearEditTextVariables(materialNameEditText);
+        materialNameEditText.requestFocus();
         materialsSpinner.setSelection(0);
     }
 

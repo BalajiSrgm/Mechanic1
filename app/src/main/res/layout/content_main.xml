@@ -33,6 +33,7 @@
                     android:layout_width="match_parent"
                     android:text="Material Type"
                     android:layout_marginTop="10dp"
+                    android:layout_marginLeft="3dp"
                     android:layout_height="wrap_content" />
             </FrameLayout>
             <FrameLayout
@@ -41,6 +42,7 @@
                 <Spinner
                     android:layout_width="match_parent"
                     android:id="@+id/materials"
+                    style="@style/spinner_style"
                     android:layout_marginTop="10dp"
                     android:layout_height="wrap_content">
                 </Spinner>
@@ -74,7 +76,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Carbon *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -91,7 +93,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Silicon *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -108,7 +110,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Manganes *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -125,7 +127,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Temperature *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -142,7 +144,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Poring Temperature *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -159,7 +161,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Box Weight *"
-                        android:inputType="numberDecimal"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
                 </android.support.design.widget.TextInputLayout>
@@ -177,10 +179,10 @@
                 <Button
                     android:layout_width="match_parent"
                     android:id="@+id/save"
-                    android:textColor="#FFF"
+                    android:textColor="@color/colorBlue"
                     android:textStyle="bold"
-                    android:background="#3498f9"
-                    android:hint="Save"
+                    android:background="@drawable/button_border_blue"
+                    android:text="Save"
                     android:layout_height="wrap_content" />
                 </FrameLayout>
                 <FrameLayout
@@ -198,10 +200,10 @@
                 <Button
                     android:layout_width="match_parent"
                     android:id="@+id/reset"
-                    android:textColor="#FFF"
+                    android:textColor="@color/colorBlue"
                     android:textStyle="bold"
-                    android:background="#3498f9"
-                    android:hint="Reset"
+                    android:background="@drawable/button_border_blue"
+                    android:text="Reset"
                     android:layout_height="wrap_content" />
                 </FrameLayout>
                 </LinearLayout>

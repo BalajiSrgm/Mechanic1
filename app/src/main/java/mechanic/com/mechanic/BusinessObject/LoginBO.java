@@ -15,6 +15,8 @@ public class LoginBO  implements Serializable{
     private String LastName;
     private String UpdatedTime;
     private String userType;
+    private String securityQuestion;
+    private String securityAnswer;
     private UserRoleBO userRoleBO;
 
 
@@ -81,5 +83,21 @@ public class LoginBO  implements Serializable{
 
     public void setUpdatedTime(String updatedTime) {
         UpdatedTime = updatedTime;
+    }
+
+    public String getSecurityQuestion() {
+        return securityQuestion;
+    }
+
+    public void setSecurityQuestion(String securityQuestion) {
+        this.securityQuestion = securityQuestion;
+    }
+
+    public String getSecurityAnswer() {
+        return securityAnswer;
+    }
+
+    public void setSecurityAnswer(String securityAnswer) {
+        this.securityAnswer = securityAnswer;
     }
 }

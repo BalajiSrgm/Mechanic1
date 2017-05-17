@@ -17,6 +17,7 @@ public class MechanicBO implements Serializable{
     private String boxWeight;
     private String materialType;
     private String materialName;
+    private String UpdatedTime;
 
 
     public String getIdMechanic() {
@@ -89,5 +90,13 @@ public class MechanicBO implements Serializable{
 
     public void setMaterialName(String materialName) {
         this.materialName = materialName;
+    }
+
+    public String getUpdatedTime() {
+        return UpdatedTime;
+    }
+
+    public void setUpdatedTime(String updatedTime) {
+        UpdatedTime = updatedTime;
     }
 }

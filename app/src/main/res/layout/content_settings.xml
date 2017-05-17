@@ -20,19 +20,36 @@
             android:layout_width="match_parent"
             android:orientation="horizontal"
             android:layout_height="wrap_content">
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:text="About"
-                android:textSize="20dp"
-                android:id="@+id/about"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:text="Security Settings"
+                    android:textColor="#000"
+                    android:textSize="20dp"
+                    android:id="@+id/securitySettings"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:layout_marginTop="30dp"
+                    android:text="change Password"
+                    android:layout_width="match_parent"
+                    android:id="@+id/changePassword"
+
+                    android:layout_height="wrap_content" />
             </FrameLayout>
         </LinearLayout>
+        <View
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#313D49">
+
+        </View>
+
         <LinearLayout
             android:layout_width="match_parent"
+            android:orientation="horizontal"
             android:layout_height="wrap_content">
         <FrameLayout
             android:layout_width="match_parent"
@@ -40,20 +57,103 @@
             android:layout_height="wrap_content">
             <TextView
                 android:layout_width="match_parent"
-                android:text="Privacy Policy"
+                android:text="About"
+                android:textColor="#000"
                 android:textSize="20dp"
-                android:visibility="gone"
-                android:id="@+id/privacyPolicy"
+                android:id="@+id/about"
                 android:layout_height="wrap_content" />
+            <TextView
+                android:layout_marginTop="30dp"
+                android:layout_width="match_parent"
+                android:id="@+id/showAbout"
+
+                android:layout_height="wrap_content" />
+            </FrameLayout>
+        </LinearLayout>
+        <View
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#313D49">
+
+        </View>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_marginTop="20dp"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="match_parent"
+                android:text="Version"
+                android:textColor="#000"
+                android:textSize="20dp"
+                android:id="@+id/version"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:text="1.0"
+                android:textColorHighlight="@color/colorBlue"
+                android:textSize="15dp"
+                android:layout_marginTop="30dp"
+                android:id="@+id/versionNumber"
+                android:layout_height="wrap_content" />
+
+
         </FrameLayout>
         </LinearLayout>
+
+        <View
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#313D49">
+
+        </View>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:text="Feedback"
+                    android:textColor="#000"
+                    android:textSize="20dp"
+                    android:id="@+id/feedBack"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:text="Send us an email"
+                    android:textColorHighlight="@color/colorBlue"
+                    android:textSize="15dp"
+                    android:layout_marginTop="30dp"
+                    android:id="@+id/sendusemail"
+                    android:layout_height="wrap_content" />
+
+
+            </FrameLayout>
+        </LinearLayout>
+
 
         <ListView
             android:layout_width="match_parent"
             android:id="@+id/hiddenRow"
+            android:visibility="gone"
             android:layout_height="wrap_content">
 
         </ListView>
+
+
     </LinearLayout>
 
 </RelativeLayout>

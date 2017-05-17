@@ -14,6 +14,7 @@ import java.util.List;
 import mechanic.com.mechanic.BusinessObject.MechanicBO;
 import mechanic.com.mechanic.MainActivity;
 import mechanic.com.mechanic.R;
+import mechanic.com.mechanic.dataShowAlign;
 
 /**
  * Created by Sailesh GB on 4/19/2017.
@@ -31,6 +32,7 @@ public class DataShowAdapter extends  RecyclerView.Adapter<DataShowAdapter.MyVie
         public MyViewHolder(View view) {
             super(view);
             context = itemView.getContext();
+            itemView.setClickable(true);
             carbon = (TextView) view.findViewById(R.id.carbonShow);
             silicon= (TextView) view.findViewById(R.id.siliconShow);
             manganes = (TextView) view.findViewById(R.id.manganesShow);
@@ -45,6 +47,7 @@ public class DataShowAdapter extends  RecyclerView.Adapter<DataShowAdapter.MyVie
                 public boolean onLongClick(View v) {
                     if(ListUtil.isNotNullOrEmpty(mechanicBOs)) {
                         mechanicBOs.remove(getAdapterPosition());
+                        notifyItemRemoved(getAdapterPosition());
                     }
                     return false;
                 }
@@ -82,8 +85,9 @@ public class DataShowAdapter extends  RecyclerView.Adapter<DataShowAdapter.MyVie
         return new MyViewHolder(itemView);
     }
 
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, int position) {
         MechanicBO mechanicBO = mechanicBOs.get(position);
+        notifyItemRangeChanged(position,mechanicBOs.size());
         if(StringUtil.isNotNullOrEmpty(mechanicBO.getCarbon())) {
             holder.carbon.setText("C: " + mechanicBO.getCarbon());
         }else{
@@ -125,12 +129,24 @@ public class DataShowAdapter extends  RecyclerView.Adapter<DataShowAdapter.MyVie
             holder.materialName.setText("");
         }
 
+        holder.boxWeight.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                holder.boxWeight.setClickable(true);
+                return false;
+            }
+        });
+
 
     }
 
     @Override
     public int getItemCount() {
        return mechanicBOs.size();
+    }
+
+    public  void setMechanicBOs(List<MechanicBO> mechanicBOs){
+        this.mechanicBOs = mechanicBOs;
     }
 
     public void showData(MechanicBO mechanicBO){

@@ -84,12 +84,21 @@ public class DataShow extends AppCompatActivity {
         itemAnimator.setAddDuration(1000);
         itemAnimator.setRemoveDuration(1000);
         recyclerView.setItemAnimator(itemAnimator);
+
+        recyclerView.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+
         if(ListUtil.isNotNullOrEmpty(mechanicBOs)) {
             recyclerView.setAdapter(null);
-            recyclerView.setAdapter(new DataShowAdapter(mechanicBOs));
+            mAdapter.setMechanicBOs(mechanicBOs);
+            recyclerView.setAdapter(mAdapter);
+
             mAdapter.notifyDataSetChanged();
             recyclerView.setLayoutManager(linearLayoutManager);
         }else {
+
 
             final FirebaseDatabase database = FirebaseDatabase.getInstance();
 
@@ -110,8 +119,8 @@ public class DataShow extends AppCompatActivity {
                     }
                     if(ListUtil.isNotNullOrEmpty(mechanicBOs)) {
                         Collections.reverse(mechanicBOs);
-                        recyclerView.setAdapter(null);
-                        recyclerView.setAdapter(new DataShowAdapter(mechanicBOs));
+                        mAdapter.setMechanicBOs(mechanicBOs);
+                        recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
                     }
 
@@ -139,6 +148,7 @@ public class DataShow extends AppCompatActivity {
                     }
                     if(ListUtil.isNotNullOrEmpty(mechanicBOs)) {
                         Collections.reverse(mechanicBOs);
+                        mAdapter.setMechanicBOs(mechanicBOs);
                         recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
                     }
@@ -159,6 +169,7 @@ public class DataShow extends AppCompatActivity {
                     }
                     if(ListUtil.isNotNullOrEmpty(mechanicBOs)) {
                         Collections.reverse(mechanicBOs);
+                        mAdapter.setMechanicBOs(mechanicBOs);
                         recyclerView.setAdapter(mAdapter);
                         mAdapter.notifyDataSetChanged();
                     }
