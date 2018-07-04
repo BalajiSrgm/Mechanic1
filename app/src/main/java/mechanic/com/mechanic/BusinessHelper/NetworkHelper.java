@@ -35,7 +35,7 @@ public class NetworkHelper extends AsyncTask {
 
         Session session = Session.getDefaultInstance(properties,new javax.mail.Authenticator(){
             protected PasswordAuthentication getPasswordAuthentication(){
-                return new PasswordAuthentication(from,"9600Balashan181851@1");
+                return new PasswordAuthentication(from,"********************");
             }
         });
         MimeMessage mimeMessage = new MimeMessage(session);
